@@ -38,6 +38,12 @@ from typing import Callable, Optional
 from openai import OpenAI
 
 from agent_team.contracts import SQLArtifact
+from agent_team.state_prompts import (
+    EXECUTION_STATE_PROMPT,
+    GATE_CODE_PROMPT,
+    INTENT_STATE_PROMPT,
+    REPAIR_STATE_PROMPT,
+)
 
 
 class Refiner:
@@ -165,6 +171,7 @@ class Refiner:
             {"role": "system", "content": (
                 "You repair SQL blocked before database execution. Never use tables or columns "
                 "outside the provided schema. Return JSON containing draft_intent and sql."
+                + EXECUTION_STATE_PROMPT + GATE_CODE_PROMPT + REPAIR_STATE_PROMPT
             )},
             {"role": "user", "content": "\n\n".join(part for part in parts if part)},
         ]
@@ -245,13 +252,12 @@ class Refiner:
 
         user_prompt = "\n".join(parts)
 
-        # 注意：这里使用简洁的 system prompt，而不是旧版 repair() 使用的 JSON 输出格式
-        # 原因：JSON 输出格式会让 Llama 等模型困惑，导致它们返回 {"action":"pass"}
-        # 而不是实际的 SQL 修复。使用纯 SQL 输出格式更可靠。
+        # 使用本路径的 SQLArtifact 输出约束，状态字典直接进入实际 system 消息。
         messages = [
             {"role": "system", "content": (
                 "You are a SQL expert. Fix database execution errors. Return only a JSON object "
                 "containing draft_intent, intent_version, intent_revision, and sql."
+                + EXECUTION_STATE_PROMPT + GATE_CODE_PROMPT + REPAIR_STATE_PROMPT
             )},
             {"role": "user", "content": user_prompt},
         ]
@@ -408,6 +414,10 @@ class Refiner:
                 + json.dumps(structured_feedback, ensure_ascii=False, indent=2)
                 + "\n"
             )
+        parts.append(
+            "## Schema Retrieval State\n"
+            + json.dumps(schema_retrieval, ensure_ascii=False, indent=2)
+        )
 
         intent_comparison = judge_result.get("intent_comparison", {})
         if intent_comparison:
@@ -452,6 +462,8 @@ class Refiner:
                 "question carefully and rewrite the SQL to match it. "
                 "Return only a JSON object containing draft_intent, intent_version, "
                 "intent_revision, and sql, with no explanations."
+                + EXECUTION_STATE_PROMPT + GATE_CODE_PROMPT
+                + INTENT_STATE_PROMPT + REPAIR_STATE_PROMPT
             )},
             {"role": "user", "content": user_prompt},
         ]

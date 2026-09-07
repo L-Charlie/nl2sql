@@ -8,6 +8,12 @@
 import json
 import os
 
+from agent_team.state_prompts import (
+    EXECUTION_STATE_PROMPT,
+    GATE_CODE_PROMPT,
+    INTENT_STATE_PROMPT,
+)
+
 
 class JudgeScoringCard:
     """构建 LLM-as-a-Verifier 的核查 prompt。"""
@@ -25,6 +31,9 @@ class JudgeScoringCard:
                     self._system_prompt = f.read()
             else:
                 self._system_prompt = self._default_system_prompt()
+            self._system_prompt += (
+                EXECUTION_STATE_PROMPT + GATE_CODE_PROMPT + INTENT_STATE_PROMPT
+            )
         return self._system_prompt
 
     def build_prompt(
@@ -88,9 +97,22 @@ class JudgeScoringCard:
 
         # 执行结果
         parts.append("## 执行结果")
+        # 保留实际状态，不能在展示时丢失 probe 截断信息或为旧调用补造默认值。
+        state_fields = (
+            "stage", "attempted", "ok", "mode", "gate", "columns", "truncated",
+            "row_count", "row_count_exact", "execution_ms", "result_profile",
+            "error_code", "read_only_enforced",
+        )
+        execution_state = {key: exec_result[key] for key in state_fields if key in exec_result}
+        parts.append(
+            "### 执行状态字段\n```json\n"
+            + json.dumps(execution_state, ensure_ascii=False, indent=2)
+            + "\n```"
+        )
         if exec_result.get("ok"):
             parts.append(f"- 状态: 执行成功")
-            parts.append(f"- 返回行数: {exec_result.get('row_count', 'N/A')}")
+            count_label = "精确行数" if exec_result.get("row_count_exact") is True else "报告行数（总行数未确认）"
+            parts.append(f"- {count_label}: {exec_result.get('row_count', 'N/A')}")
             sample_rows = exec_result.get("sample_rows", [])
             if sample_rows:
                 sample_str = "\n".join(
@@ -98,7 +120,12 @@ class JudgeScoringCard:
                 )
                 parts.append(f"- 样本数据（前5行）:\n```\n{sample_str}\n```")
         else:
-            parts.append(f"- 状态: 执行失败")
+            if exec_result.get("attempted") is False or exec_result.get("stage") == "gate":
+                parts.append("- 状态: 未执行")
+            elif exec_result.get("ok") is False:
+                parts.append("- 状态: 执行器报告失败")
+            else:
+                parts.append("- 状态: 未知（未提供成功或失败标记）")
             parts.append(f"- 错误信息: {exec_result.get('error', 'Unknown')[:500]}")
 
         return "\n\n".join(parts)

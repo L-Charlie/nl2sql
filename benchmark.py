@@ -345,8 +345,20 @@ def main():
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--base-url", default=os.getenv("OPENAI_API_BASE", "https://api.deepseek.com"))
     parser.add_argument("--api-key", default=os.getenv("OPENAI_API_KEY", ""))
-    parser.add_argument("--selection", choices=["head", "random", "hard"], default="head",
-                        help="head = first N, random = random N, hard = challenging first")
+    parser.add_argument(
+        "--selection",
+        choices=["head", "random", "hard", "stratified"],
+        default="head",
+        help=(
+            "head = first N, random = random N, hard = challenging first, "
+            "stratified = random sample by --difficulty-ratio"
+        ),
+    )
+    parser.add_argument(
+        "--difficulty-ratio",
+        default="1:5:4",
+        help="simple:moderate:challenging ratio used by stratified selection",
+    )
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir)
@@ -365,6 +377,31 @@ def main():
     random.seed(args.seed)
     if args.selection == "random":
         selected = random.sample(questions, min(args.limit, len(questions)))
+    elif args.selection == "stratified":
+        ratio_parts = [int(part) for part in args.difficulty_ratio.split(":")]
+        if len(ratio_parts) != 3 or any(part < 0 for part in ratio_parts) or sum(ratio_parts) <= 0:
+            parser.error("--difficulty-ratio must be three non-negative integers, e.g. 1:5:4")
+        difficulties = ("simple", "moderate", "challenging")
+        raw_counts = [args.limit * part / sum(ratio_parts) for part in ratio_parts]
+        sample_counts = [int(count) for count in raw_counts]
+        remainder = args.limit - sum(sample_counts)
+        remainder_order = sorted(
+            range(3),
+            key=lambda index: (raw_counts[index] - sample_counts[index], -index),
+            reverse=True,
+        )
+        for index in remainder_order[:remainder]:
+            sample_counts[index] += 1
+
+        selected = []
+        for difficulty, count in zip(difficulties, sample_counts):
+            pool = [q for q in questions if q["difficulty"] == difficulty]
+            if len(pool) < count:
+                parser.error(
+                    f"not enough {difficulty} questions: requested {count}, available {len(pool)}"
+                )
+            selected.extend(random.sample(pool, count))
+        random.shuffle(selected)
     elif args.selection == "hard":
         hard = [q for q in questions if q["difficulty"] == "challenging"]
         others = [q for q in questions if q["difficulty"] != "challenging"]
@@ -454,6 +491,7 @@ def main():
             "config": {
                 "model": args.model, "limit": len(selected),
                 "selection": args.selection, "seed": args.seed,
+                "difficulty_ratio": args.difficulty_ratio,
                 "workers": args.workers,
             },
             "total": total, "passed": passed, "accuracy": round(acc, 1),

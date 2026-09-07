@@ -1,0 +1,8 @@
+agent_team/traces/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.sqlite
+.env
+benchmark_output/
+comparison_output/

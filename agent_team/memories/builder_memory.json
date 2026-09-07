@@ -1,0 +1,50 @@
+[
+  {
+    "signature": "sql:What is the name of the visitor who visited both a museum op",
+    "data": {
+      "tables_used": [
+        "visitor",
+        "museum",
+        "visit"
+      ],
+      "plan": "visitor"
+    },
+    "entry_type": "success",
+    "success_count": 3,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777449378.1147046
+  },
+  {
+    "signature": "sql:Find the first name of students who have both cat and dog pe",
+    "data": {
+      "tables_used": [
+        "Student",
+        "Pets",
+        "Has_Pet"
+      ],
+      "plan": "Student"
+    },
+    "entry_type": "success",
+    "success_count": 4,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777449462.947106
+  },
+  {
+    "signature": "sql:What are the students' first names who have both cats and do",
+    "data": {
+      "tables_used": [
+        "Pets",
+        "Student",
+        "Has_Pet"
+      ],
+      "plan": "Student"
+    },
+    "entry_type": "success",
+    "success_count": 4,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777449510.1338792
+  }
+]

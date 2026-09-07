@@ -1,0 +1,86 @@
+[
+  {
+    "signature": "plan:visit",
+    "data": {
+      "anchor_table": "visit",
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 2,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777449353.868904
+  },
+  {
+    "signature": "plan:Student",
+    "data": {
+      "anchor_table": "Student",
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 14,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777449444.302593
+  },
+  {
+    "signature": "plan:visitor",
+    "data": {
+      "anchor_table": "visitor",
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 4,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777452276.6603024
+  },
+  {
+    "signature": "plan:VOTES",
+    "data": {
+      "anchor_table": "VOTES",
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 1,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777454130.0681746
+  },
+  {
+    "signature": "plan:countries",
+    "data": {
+      "anchor_table": "countries",
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 2,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777454693.962201
+  },
+  {
+    "signature": "plan:unknown",
+    "data": {
+      "anchor_table": null,
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 1,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777454843.7240953
+  },
+  {
+    "signature": "plan:car_makers",
+    "data": {
+      "anchor_table": "car_makers",
+      "query_type": ""
+    },
+    "entry_type": "success",
+    "success_count": 1,
+    "failure_count": 0,
+    "last_used_days_ago": 0.0,
+    "created_at": 1777455000.6557024
+  }
+]
